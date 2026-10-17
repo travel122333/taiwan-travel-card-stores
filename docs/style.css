@@ -24,3 +24,4 @@ td:last-child, th:last-child { text-align: right; }
 #chg-body h3 { font-size: .95rem; margin: 10px 0 4px; }
 #chg-body li { font-size: .88rem; }
 footer { max-width: 860px; margin: 0 auto; padding: 8px 12px 28px; font-size: .8rem; color: #666; }
+.regs{margin-top:.4em;font-size:.9em;color:#555}.regs ul{margin:.3em 0;padding-left:1.2em}

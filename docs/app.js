@@ -14,7 +14,7 @@ function norm(s) {
     .replace(SUFFIX, '').replace(/[\s\-_.,，、()（）]/g, '');
 }
 const digits = s => s.normalize('NFKC').replace(/\D/g, '');
-const prep = r => { r._n = norm(r.n); r._p = digits(r.p || ''); return r; };
+const prep = r => { r._n = norm([r.n, ...(r.m || []).map(x => x[0])].join('|')); r._p = digits(r.p || ''); return r; };
 // Google 地圖搜尋：店名（去公司後綴）＋地址；Google 找得到該店就會直接跳到店家頁
 const mapUrl = r => 'https://www.google.com/maps/search/?api=1&query=' +
   encodeURIComponent(r.n.replace(/股份有限公司|有限公司/g, ' ') + ' ' + r.a);
@@ -97,7 +97,7 @@ function render() {
   shown = 0;
   $('results').innerHTML = '';
   more();
-  $('status').textContent = `${city || '全國'} 共 ${matched.length.toLocaleString()} 筆符合（不含計程車）`;
+  $('status').textContent = `${city || '全國'} 共 ${matched.length.toLocaleString()} 家符合（不含計程車；同一家店的多筆登記已合併）`;
 }
 
 function more() {
@@ -107,7 +107,10 @@ function more() {
     `<div class="meta">${esc(r.a)}</div>` +
     `<div class="meta">${esc(tName[r.t] || '')}｜${esc(gName[r.g] || '')}${r.p ? '｜' + esc(r.p) : ''}</div>` +
     `<a href="${detailUrl(r.i)}" target="_blank" rel="noopener">到 NCCC 確認</a>　` +
-    `<a href="${mapUrl(r)}" target="_blank" rel="noopener">Google 地圖</a></div>`).join(''));
+    `<a href="${mapUrl(r)}" target="_blank" rel="noopener">Google 地圖</a>` +
+    (r.m && r.m.length ? `<details class="regs"><summary>同一家店另有 ${r.m.length} 筆登記（不同刷卡機或部門，都是特約）</summary><ul>` +
+      r.m.map(([n, i]) => `<li>${esc(n)} <a href="${detailUrl(i)}" target="_blank" rel="noopener">NCCC</a></li>`).join('') +
+      '</ul></details>' : '') + '</div>').join(''));
   shown += next.length;
   $('more').hidden = shown >= matched.length;
 }
@@ -116,7 +119,7 @@ let loading;
 function loadAll() {
   $('status').textContent = '載入全國索引中…';
   loading = loading || getJSON('index').then(x => {
-    all = x.map(([n, a, d, g, t, p, i]) => prep({ n, a, d, g, t, p, i }));
+    all = x.map(([n, a, d, g, t, p, i, m]) => prep({ n, a, d, g, t, p, i, m }));
     render();
   });
 }

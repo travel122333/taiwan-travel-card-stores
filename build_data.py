@@ -41,6 +41,42 @@ def phone_of(s):
     return re.sub(r'\s+', '', s).rstrip('-')
 
 
+def merge_dups(lst):
+    """同一家店常有多筆登記（多台刷卡機、網路/實體、飯店各部門）→ 合併成一筆，其餘登記放 m。
+    條件：同門牌（地址到「號」）＋同電話末 8 碼（無電話則店名相同）＋一方店名開頭 2 字出現在另一方。"""
+    clean = lambda n: re.sub(r'股份有限公司|有限公司|分公司|營業所|[-－﹣_(（].*$|[\s.,，、·&＆\'"]', '',
+                             unicodedata.normalize('NFKC', n).lower().replace('臺', '台')) or n
+    def key(r):
+        a = re.sub(r'\s', '', r['a'].replace('臺', '台'))
+        m = re.match(r'.*?\d+號', a)
+        d = re.sub(r'\D', '', r.get('p', ''))
+        return (m.group(0) if m else a, d[-8:] if len(d) >= 7 else clean(r['n']))
+    groups = {}
+    for r in lst:
+        groups.setdefault(key(r), []).append(r)
+    out = []
+    for g in groups.values():
+        clusters = []
+        for r in g:
+            c = clean(r['n'])
+            for cl in clusters:
+                if any(c[:2] in clean(x['n']) or clean(x['n'])[:2] in c for x in cl):
+                    cl.append(r)
+                    break
+            else:
+                clusters.append([r])
+        for cl in clusters:
+            cnt = {}
+            for x in cl:
+                cnt[x['n']] = cnt.get(x['n'], 0) + 1
+            main = min(cl, key=lambda x: (-cnt[x['n']], len(x['n'])))
+            rest = [[x['n'], x['i']] for x in cl if x is not main]
+            if rest:
+                main['m'] = rest
+            out.append(main)
+    return out
+
+
 def main():
     rows = read(CSV)
     cats = json.loads(CATS.read_text(encoding='utf-8'))
@@ -63,10 +99,12 @@ def main():
         by_city.setdefault(city_of(r), []).append(rec)
 
     dump = lambda path, obj: path.write_text(json.dumps(obj, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
+    raw = sum(len(l) for l in by_city.values())
+    by_city = {c: merge_dups(l) for c, l in by_city.items()}
     for c, lst in by_city.items():
         dump(OUT / f'{c}.json', lst)
     # 全國索引：未選縣市時用店名／電話搜尋全國（欄位順序同 app.js loadAll）
-    dump(OUT / 'index.json', [[r['n'], r['a'], r['d'], r['g'], r['t'], r.get('p', ''), r['i']]
+    dump(OUT / 'index.json', [[r['n'], r['a'], r['d'], r['g'], r['t'], r.get('p', ''), r['i'], r.get('m', [])]
                               for c in CITIES + [OTHER] for r in by_city.get(c, [])])
     fleets = sorted(({'n': k, 'c': v} for k, v in taxi.items()), key=lambda x: -x['c'])
     dump(OUT / 'taxi.json', {'total': sum(taxi.values()), 'fleets': fleets})
@@ -88,6 +126,7 @@ def main():
         'cats': [{'g': g[0], 'n': g[1], 't': [{'c': t[0], 'n': t[1]} for t in g[2] if t[1] != TAXI]} for g in cats],
     })
     sizes = sorted(((p.stat().st_size, p.name) for p in OUT.glob('*.json')), reverse=True)
+    print(f'非計程車 {raw} 筆登記合併為 {sum(len(l) for l in by_city.values())} 家')
     print(f'共 {len(rows)} 筆；計程車 {sum(taxi.values())} 筆 → {len(fleets)} 車隊；新增 {len(added)}／消失 {len(removed)}')
     print(f'docs/data 合計 {sum(s for s, _ in sizes) / 1e6:.2f} MB，最大 {sizes[0][1]} {sizes[0][0] / 1e6:.2f} MB')
 
