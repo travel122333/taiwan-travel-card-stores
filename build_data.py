@@ -65,6 +65,9 @@ def main():
     dump = lambda path, obj: path.write_text(json.dumps(obj, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     for c, lst in by_city.items():
         dump(OUT / f'{c}.json', lst)
+    # 全國索引：未選縣市時用店名／電話搜尋全國（欄位順序同 app.js loadAll）
+    dump(OUT / 'index.json', [[r['n'], r['a'], r['d'], r['g'], r['t'], r.get('p', ''), r['i']]
+                              for c in CITIES + [OTHER] for r in by_city.get(c, [])])
     fleets = sorted(({'n': k, 'c': v} for k, v in taxi.items()), key=lambda x: -x['c'])
     dump(OUT / 'taxi.json', {'total': sum(taxi.values()), 'fleets': fleets})
 

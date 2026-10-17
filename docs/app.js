@@ -5,7 +5,7 @@ const $ = id => document.getElementById(id);
 const detailUrl = id => `${NCCC}?Action=RetailerEdit&Type=GetFull&Id=${id}&RequestType=0`;
 
 let meta, gName = {}, tName = {};
-let rows = [], matched = [], shown = 0;
+let rows = [], all = null, matched = [], shown = 0;
 
 // 統一比對用字串：全半形、大小寫、臺→台、空白標點，並去除公司後綴
 const SUFFIX = /股份有限公司|有限公司|分公司|營業所|[-－﹣](網路|ec)(\.?app)?/g;
@@ -14,6 +14,10 @@ function norm(s) {
     .replace(SUFFIX, '').replace(/[\s\-_.,，、()（）]/g, '');
 }
 const digits = s => s.normalize('NFKC').replace(/\D/g, '');
+const prep = r => { r._n = norm(r.n); r._p = digits(r.p || ''); return r; };
+// Google 地圖搜尋：店名（去公司後綴）＋地址；Google 找得到該店就會直接跳到店家頁
+const mapUrl = r => 'https://www.google.com/maps/search/?api=1&query=' +
+  encodeURIComponent(r.n.replace(/股份有限公司|有限公司/g, ' ') + ' ' + r.a);
 
 async function getJSON(name) {
   const r = await fetch(`data/${encodeURIComponent(name)}.json`);
@@ -67,8 +71,7 @@ async function onCity() {
   $('district').disabled = true;
   if (!city) { render(); return; }
   $('status').textContent = '載入中…';
-  rows = await getJSON(city);
-  rows.forEach(r => { r._n = norm(r.n); r._p = digits(r.p || ''); });
+  rows = (await getJSON(city)).map(prep);
   const ds = [...new Set(rows.map(r => r.d).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
   fill($('district'), ds.map(d => [d, d]), '全部');
   $('district').disabled = !ds.length;
@@ -84,16 +87,17 @@ function onGmcc() {
 
 function render() {
   const city = $('city').value;
-  if (!city) { matched = []; $('results').innerHTML = ''; $('more').hidden = true; $('status').textContent = '請先選擇縣市。'; return; }
   const d = $('district').value, g = $('gmcc').value, t = $('tcc').value;
   const kw = norm($('kw').value), tel = digits($('tel').value);
-  matched = rows.filter(r =>
+  if (!city && !kw && !tel) { matched = []; $('results').innerHTML = ''; $('more').hidden = true; $('status').textContent = '請選擇縣市，或直接輸入店名／電話搜尋全國。'; return; }
+  if (!city && !all) { loadAll(); return; }
+  matched = (city ? rows : all).filter(r =>
     (!d || r.d === d) && (!g || r.g === g) && (!t || r.t === t) &&
     (!kw || r._n.includes(kw)) && (!tel || r._p.includes(tel)));
   shown = 0;
   $('results').innerHTML = '';
   more();
-  $('status').textContent = `${city} 共 ${matched.length.toLocaleString()} 筆符合（不含計程車）`;
+  $('status').textContent = `${city || '全國'} 共 ${matched.length.toLocaleString()} 筆符合（不含計程車）`;
 }
 
 function more() {
@@ -102,9 +106,19 @@ function more() {
     `<div class="card"><div class="name">${esc(r.n)}</div>` +
     `<div class="meta">${esc(r.a)}</div>` +
     `<div class="meta">${esc(tName[r.t] || '')}｜${esc(gName[r.g] || '')}${r.p ? '｜' + esc(r.p) : ''}</div>` +
-    `<a href="${detailUrl(r.i)}" target="_blank" rel="noopener">到 NCCC 確認</a></div>`).join(''));
+    `<a href="${detailUrl(r.i)}" target="_blank" rel="noopener">到 NCCC 確認</a>　` +
+    `<a href="${mapUrl(r)}" target="_blank" rel="noopener">Google 地圖</a></div>`).join(''));
   shown += next.length;
   $('more').hidden = shown >= matched.length;
+}
+
+let loading;
+function loadAll() {
+  $('status').textContent = '載入全國索引中…';
+  loading = loading || getJSON('index').then(x => {
+    all = x.map(([n, a, d, g, t, p, i]) => prep({ n, a, d, g, t, p, i }));
+    render();
+  });
 }
 
 let timer;
