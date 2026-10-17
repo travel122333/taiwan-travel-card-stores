@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>國旅卡特約商店查詢（非官方）</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>國旅卡特約商店查詢</h1>
+  <p class="sub">資料更新日：<span id="updated">載入中…</span>　共 <span id="total">-</span> 家特約商店</p>
+</header>
+
+<main>
+  <details class="box" id="law">
+    <summary>國旅卡補助重點與注意事項（點開閱讀）</summary>
+    <ul>
+      <li>補助額度 16,000 元：觀光旅遊業 8,000 元＋自行運用 8,000 元</li>
+      <li>109 年起不限休假日刷卡，但不得於上班時間刷卡消費</li>
+      <li>請領期限：次年 1/5（12 月消費）、2/5 前申請（依人事單位規定）</li>
+      <li>不限異地消費</li>
+      <li>115 年 1 月 1 日起：未具 3 日休假資格者亦給 3 日</li>
+      <li>非特約商店或已解約商店消費不予補助（特殊情形可補登，依人事單位認定）</li>
+      <li>透過第三方訂房平台（如 Agoda、Booking）付款不予補助</li>
+      <li>卡片不得借他人使用</li>
+      <li>不得索取統一編號發票</li>
+      <li>假消費（刷卡退現等）可能涉一般詐欺罪；承辦人員涉貪污治罪條例</li>
+    </ul>
+    <p class="note">資料整理自公務人員休假改進措施及人事總處問答，以官方最新公告為準。
+      <a href="https://www.dgpa.gov.tw/" target="_blank" rel="noopener">行政院人事行政總處</a></p>
+  </details>
+
+  <section class="box">
+    <div class="filters">
+      <label>縣市<select id="city"><option value="">請選擇縣市</option></select></label>
+      <label>鄉鎮市區<select id="district" disabled><option value="">全部</option></select></label>
+      <label>大類<select id="gmcc"><option value="">全部</option></select></label>
+      <label>細類<select id="tcc" disabled><option value="">全部</option></select></label>
+    </div>
+    <div class="filters">
+      <label>店名／關鍵字<input id="kw" type="search" placeholder="例：全家、7-11、麗緻"></label>
+      <label>電話（只比對數字）<input id="tel" type="search" inputmode="tel" placeholder="例：02-2516 或 25160966"></label>
+    </div>
+    <p id="status" class="status">請先選擇縣市。</p>
+  </section>
+
+  <section id="results"></section>
+  <div class="center"><button id="more" hidden>顯示更多</button></div>
+
+  <details class="box" id="changes">
+    <summary>本週新增／解約的店 <span id="chg-sum"></span></summary>
+    <div id="chg-body"></div>
+  </details>
+
+  <details class="box" id="taxi">
+    <summary>計程車（依車隊收合）</summary>
+    <p class="note">計程車特約資料以司機個別登記、數量龐大（約 <span id="taxi-total">-</span> 筆），此處僅列車隊與筆數。要確認個別車輛請至 NCCC 查詢系統。</p>
+    <table id="taxi-table"><thead><tr><th>車隊</th><th>筆數</th></tr></thead><tbody></tbody></table>
+  </details>
+</main>
+
+<footer>
+  <p>非官方網站，資料每週自 <a href="https://travel.nccc.com.tw/NASApp/NTC/servlet/com.du.mvc.EntryServlet?Action=RetailerInquiry&Type=GetFull" target="_blank" rel="noopener">NCCC 國民旅遊卡特約商店查詢系統</a>抓取。實際是否為特約商店，請以「到 NCCC 確認」連結及官方系統為準。</p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
