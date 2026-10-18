@@ -170,7 +170,7 @@ function popupHtml(r) {
     `<a href="${mapUrl(r)}" target="_blank" rel="noopener">Google 地圖</a>`;
 }
 
-// 選取第 k 家：開 popup、清單高亮並捲動；從清單點選時地圖 flyTo，從地圖點選時清單捲動（僅桌面版）
+// 選取第 k 家：開 popup、清單高亮；從清單點選時地圖 flyTo（手機版另捲到地圖）
 function selectStore(k, { fromMap = false } = {}) {
   const r = matched[k];
   if (!r || !r.c) return;
@@ -178,8 +178,8 @@ function selectStore(k, { fromMap = false } = {}) {
   if (hlEl) hlEl.classList.remove('hl');
   hlEl = $('c' + k);
   const mobile = window.matchMedia('(max-width: 899px)').matches;
-  // 手機版從地圖點選時 popup 已有完整資訊，不捲到下方清單
-  if (hlEl) { hlEl.classList.add('hl'); if (fromMap && !mobile) hlEl.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+  // 從地圖點選時 popup 已有完整資訊，不捲動清單
+  if (hlEl) hlEl.classList.add('hl');
   const ll = [r.c[1], r.c[0]];
   popup.setLngLat(ll).setHTML(popupHtml(r)).addTo(map);
   if (!fromMap) {

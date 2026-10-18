@@ -6,7 +6,7 @@
 <title>國旅卡特約商店查詢（非官方）</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=20261018d">
+<link rel="stylesheet" href="style.css?v=20261018e">
 </head>
 <body>
 <header>
@@ -34,8 +34,7 @@
   </details>
 
   <div id="split">
-    <div id="leftcol">
-    <section class="box">
+    <section class="box" id="filterbox">
       <div class="filters">
         <label>縣市<select id="city"><option value="">請選擇縣市</option></select></label>
         <label>鄉鎮市區<select id="district" disabled><option value="">全部</option></select></label>
@@ -53,7 +52,6 @@
       <div id="map"></div>
       <button id="searcharea" hidden>搜尋這個區域</button>
       <p class="note" id="mapnote">底圖：<a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>；座標由 <a href="https://nominatim.org/" target="_blank" rel="noopener">Nominatim</a> 依地址推算（ODbL），可能有誤差，僅供參考。</p>
-    </div>
     </div>
     <div id="listcol">
       <section id="results"><p class="hint">在左側選擇縣市或類別、輸入店名／電話，或把地圖移到想去的地方按「搜尋這個區域」，店家清單會顯示在這裡。</p></section>
@@ -77,6 +75,6 @@
   <p>非官方網站，資料每週自 <a href="https://travel.nccc.com.tw/NASApp/NTC/servlet/com.du.mvc.EntryServlet?Action=RetailerInquiry&Type=GetFull" target="_blank" rel="noopener">NCCC 國民旅遊卡特約商店查詢系統</a>抓取。Google 地圖連結是以店名＋地址搜尋，不保證對應到同一家店。實際是否為特約商店，請以「到 NCCC 確認」連結及官方系統為準。</p>
 </footer>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="app.js?v=20261018d"></script>
+<script src="app.js?v=20261018e"></script>
 </body>
 </html>
