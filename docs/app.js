@@ -2,7 +2,7 @@
 const NCCC = 'https://travel.nccc.com.tw/NASApp/NTC/servlet/com.du.mvc.EntryServlet';
 const PAGE = 200;
 const $ = id => document.getElementById(id);
-const detailUrl = id => `${NCCC}?Action=RetailerEdit&Type=GetFull&Id=${id}&RequestType=0`;
+const detailUrl = id => `${NCCC}?Action=RetailerEdit&Type=GetFull&Id=${encodeURIComponent(id)}&RequestType=0`;
 
 let meta, gName = {}, tName = {};
 let rows = [], all = null, matched = [], shown = 0;
@@ -59,7 +59,7 @@ async function loadChanges() {
 async function loadTaxi() {
   const t = await getJSON('taxi');
   $('taxi-total').textContent = t.total.toLocaleString();
-  $('taxi-table').tBodies[0].innerHTML = t.fleets.map(f => `<tr><td>${esc(f.n)}</td><td>${f.c.toLocaleString()}</td></tr>`).join('');
+  $('taxi-table').tBodies[0].innerHTML = t.fleets.map(f => `<tr><td>${esc(f.n)}</td><td>${esc(f.c.toLocaleString())}</td></tr>`).join('');
 }
 
 function esc(s) {
@@ -73,7 +73,9 @@ async function onCity() {
   $('district').disabled = true;
   if (!city) { render(); return; }
   $('status').textContent = '載入中…';
-  rows = (await getJSON(city)).map(prep);
+  const data = await getJSON(city);
+  if ($('city').value !== city) return; // 已改選別的縣市，丟掉晚到的舊資料
+  rows = data.map(prep);
   const ds = [...new Set(rows.map(r => r.d).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
   fill($('district'), ds.map(d => [d, d]), '鄉鎮市區：全部');
   $('district').disabled = !ds.length;
@@ -105,7 +107,7 @@ function render() {
   $('results').innerHTML = '';
   more();
   const nc = matched.filter(r => r.c).length;
-  $('status').innerHTML = `${bounds ? (city ? city + '・' : '') + '地圖範圍內' : city || '全國'} 共 ${matched.length.toLocaleString()} 家符合<span class="sn">（不含計程車；同一家店的多筆登記已合併）</span>；地圖上有 ${nc.toLocaleString()} 家`;
+  $('status').innerHTML = `${bounds ? (city ? esc(city) + '・' : '') + '地圖範圍內' : esc(city || '全國')} 共 ${matched.length.toLocaleString()} 家符合<span class="sn">（不含計程車；同一家店的多筆登記已合併）</span>；地圖上有 ${nc.toLocaleString()} 家`;
   $('areabar').hidden = !bounds;
   $('searcharea').hidden = true;
   updateMap(city);
