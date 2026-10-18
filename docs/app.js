@@ -92,7 +92,7 @@ function render() {
   const city = $('city').value;
   const d = $('district').value, g = $('gmcc').value, t = $('tcc').value;
   const kw = norm($('kw').value), tel = digits($('tel').value);
-  if (!city && !kw && !tel) { matched = []; $('results').innerHTML = ''; $('more').hidden = true; $('status').textContent = '請選擇縣市，或直接輸入店名／電話搜尋全國。'; $('areabar').hidden = true; updateMap(''); return; }
+  if (!city && !kw && !tel && !bounds) { matched = []; $('results').innerHTML = ''; $('more').hidden = true; $('status').textContent = '請選擇縣市，或直接輸入店名／電話搜尋全國。'; $('areabar').hidden = true; updateMap(''); return; }
   if (!city && !all) { loadAll(); return; }
   matched = (city ? rows : all).filter(r =>
     (!d || r.d === d) && (!g || r.g === g) && (!t || r.t === t) &&
@@ -102,7 +102,7 @@ function render() {
   $('results').innerHTML = '';
   more();
   const nc = matched.filter(r => r.c).length;
-  $('status').textContent = `${city || '全國'} 共 ${matched.length.toLocaleString()} 家符合（不含計程車；同一家店的多筆登記已合併）；地圖上有 ${nc.toLocaleString()} 家`;
+  $('status').textContent = `${city || (bounds ? '地圖範圍內' : '全國')} 共 ${matched.length.toLocaleString()} 家符合（不含計程車；同一家店的多筆登記已合併）；地圖上有 ${nc.toLocaleString()} 家`;
   $('areabar').hidden = !bounds;
   $('searcharea').hidden = true;
   updateMap(city);
