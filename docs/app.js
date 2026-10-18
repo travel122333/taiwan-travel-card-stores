@@ -69,13 +69,13 @@ function esc(s) {
 async function onCity() {
   const city = $('city').value;
   rows = [];
-  fill($('district'), [], '全部');
+  fill($('district'), [], '鄉鎮市區：全部');
   $('district').disabled = true;
   if (!city) { render(); return; }
   $('status').textContent = '載入中…';
   rows = (await getJSON(city)).map(prep);
   const ds = [...new Set(rows.map(r => r.d).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
-  fill($('district'), ds.map(d => [d, d]), '全部');
+  fill($('district'), ds.map(d => [d, d]), '鄉鎮市區：全部');
   $('district').disabled = !ds.length;
   render();
 }
@@ -83,10 +83,10 @@ async function onCity() {
 const gSel = () => [...$('gmccopts').querySelectorAll('input:checked')].map(x => x.value);
 function onGmcc() {
   const sel = gSel();
-  $('gmccsum').textContent = sel.length ? sel.map(v => gName[v]).join('、') : '全部';
+  $('gmccsum').textContent = sel.length ? sel.map(v => gName[v]).join('、') : '大類（可複選）';
   // 細類只在選了單一大類時可用
   const g = sel.length === 1 && meta.cats.find(x => x.g === sel[0]);
-  fill($('tcc'), g ? g.t.map(t => [t.c, t.n]) : [], '全部');
+  fill($('tcc'), g ? g.t.map(t => [t.c, t.n]) : [], '細類：全部');
   $('tcc').disabled = !g || !g.t.length;
   render();
 }
@@ -105,7 +105,7 @@ function render() {
   $('results').innerHTML = '';
   more();
   const nc = matched.filter(r => r.c).length;
-  $('status').textContent = `${bounds ? (city ? city + '・' : '') + '地圖範圍內' : city || '全國'} 共 ${matched.length.toLocaleString()} 家符合（不含計程車；同一家店的多筆登記已合併）；地圖上有 ${nc.toLocaleString()} 家`;
+  $('status').innerHTML = `${bounds ? (city ? city + '・' : '') + '地圖範圍內' : city || '全國'} 共 ${matched.length.toLocaleString()} 家符合<span class="sn">（不含計程車；同一家店的多筆登記已合併）</span>；地圖上有 ${nc.toLocaleString()} 家`;
   $('areabar').hidden = !bounds;
   $('searcharea').hidden = true;
   updateMap(city);

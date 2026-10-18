@@ -57,7 +57,13 @@ footer { max-width: 860px; margin: 0 auto; padding: 8px 12px 28px; font-size: .8
   #split { grid-template-columns: minmax(360px, 5fr) 7fr; grid-template-rows: auto 1fr;
     grid-template-areas: "f m" "l m"; height: calc(100vh - 16px); height: calc(100dvh - 16px); }
   #filterbox { grid-area: f; margin-bottom: 0; }
-  #filterbox .filters { grid-template-columns: repeat(2, 1fr); }
+  /* 篩選框緊湊：6 欄排成 3×2、不顯示欄名（改寫在選單第一項／提示字） */
+  #filterbox { padding: 8px 10px; }
+  #filterbox .filters { grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 6px; }
+  #filterbox .lt, #status .sn { display: none; }
+  #filterbox select, #filterbox input { padding: 6px; }
+  #filterbox .msel summary { padding: 6px 24px 6px 6px; }
+  #status { font-size: .82rem; }
   #listcol { grid-area: l; overflow-y: auto; min-height: 0; padding-right: 4px; }
   #mapwrap { grid-area: m; display: flex; flex-direction: column; min-height: 0; }
   #map { flex: 1; height: auto; min-height: 300px; }

@@ -6,7 +6,7 @@
 <title>國旅卡特約商店查詢（非官方）</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=20261018e">
+<link rel="stylesheet" href="style.css?v=20261018f">
 </head>
 <body>
 <header>
@@ -36,14 +36,12 @@
   <div id="split">
     <section class="box" id="filterbox">
       <div class="filters">
-        <label>縣市<select id="city"><option value="">請選擇縣市</option></select></label>
-        <label>鄉鎮市區<select id="district" disabled><option value="">全部</option></select></label>
-        <div class="lbl">大類（可複選）<details id="gmcc" class="msel"><summary id="gmccsum">全部</summary><div id="gmccopts"></div></details></div>
-        <label>細類<select id="tcc" disabled><option value="">全部</option></select></label>
-      </div>
-      <div class="filters">
-        <label>店名／關鍵字<input id="kw" type="search" placeholder="例：全家、7-11、麗緻"></label>
-        <label>電話（只比對數字）<input id="tel" type="search" inputmode="tel" placeholder="例：02-2516 或 25160966"></label>
+        <label><span class="lt">縣市</span><select id="city" aria-label="縣市"><option value="">請選擇縣市</option></select></label>
+        <label><span class="lt">鄉鎮市區</span><select id="district" aria-label="鄉鎮市區" disabled><option value="">鄉鎮市區：全部</option></select></label>
+        <div class="lbl"><span class="lt">大類（可複選）</span><details id="gmcc" class="msel"><summary id="gmccsum">大類（可複選）</summary><div id="gmccopts"></div></details></div>
+        <label><span class="lt">細類</span><select id="tcc" aria-label="細類" disabled><option value="">細類：全部</option></select></label>
+        <label><span class="lt">店名／關鍵字</span><input id="kw" type="search" aria-label="店名／關鍵字" placeholder="店名／關鍵字"></label>
+        <label><span class="lt">電話（只比對數字）</span><input id="tel" type="search" aria-label="電話" inputmode="tel" placeholder="電話，例：02-2516"></label>
       </div>
       <p id="status" class="status">請選擇縣市，或直接輸入店名／電話搜尋全國。</p>
       <div id="areabar" hidden><span>目前只顯示地圖範圍內的店，篩選條件會在這個範圍內疊加。</span><button id="cleararea" type="button">✕ 清除範圍限制</button></div>
@@ -75,6 +73,6 @@
   <p>非官方網站，資料每週自 <a href="https://travel.nccc.com.tw/NASApp/NTC/servlet/com.du.mvc.EntryServlet?Action=RetailerInquiry&Type=GetFull" target="_blank" rel="noopener">NCCC 國民旅遊卡特約商店查詢系統</a>抓取。Google 地圖連結是以店名＋地址搜尋，不保證對應到同一家店。實際是否為特約商店，請以「到 NCCC 確認」連結及官方系統為準。</p>
 </footer>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="app.js?v=20261018e"></script>
+<script src="app.js?v=20261018f"></script>
 </body>
 </html>
