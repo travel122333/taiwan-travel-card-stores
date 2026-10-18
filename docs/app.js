@@ -38,7 +38,8 @@ async function init() {
   $('total').textContent = meta.total.toLocaleString();
   meta.cats.forEach(g => { gName[g.g] = g.n; g.t.forEach(t => tName[t.c] = t.n); });
   fill($('city'), Object.entries(meta.counts).map(([c, n]) => [c, `${c}（${n.toLocaleString()}）`]), '請選擇縣市');
-  fill($('gmcc'), meta.cats.map(g => [g.g, g.n]), '全部');
+  $('gmccopts').innerHTML = meta.cats.map(g => `<label><input type="checkbox" value="${esc(g.g)}">${esc(g.n)}</label>`).join('') +
+    '<button type="button" class="clr">全部取消</button>';
   loadChanges();
   loadTaxi();
 }
@@ -66,7 +67,6 @@ function esc(s) {
 }
 
 async function onCity() {
-  resetBounds();
   const city = $('city').value;
   rows = [];
   fill($('district'), [], '全部');
@@ -80,9 +80,12 @@ async function onCity() {
   render();
 }
 
+const gSel = () => [...$('gmccopts').querySelectorAll('input:checked')].map(x => x.value);
 function onGmcc() {
-  resetBounds();
-  const g = meta.cats.find(x => x.g === $('gmcc').value);
+  const sel = gSel();
+  $('gmccsum').textContent = sel.length ? sel.map(v => gName[v]).join('、') : '全部';
+  // 細類只在選了單一大類時可用
+  const g = sel.length === 1 && meta.cats.find(x => x.g === sel[0]);
   fill($('tcc'), g ? g.t.map(t => [t.c, t.n]) : [], '全部');
   $('tcc').disabled = !g || !g.t.length;
   render();
@@ -90,19 +93,19 @@ function onGmcc() {
 
 function render() {
   const city = $('city').value;
-  const d = $('district').value, g = $('gmcc').value, t = $('tcc').value;
+  const d = $('district').value, gs = new Set(gSel()), t = $('tcc').value;
   const kw = norm($('kw').value), tel = digits($('tel').value);
   if (!city && !kw && !tel && !bounds) { matched = []; $('results').innerHTML = '<p class="hint">在左側選擇縣市或類別、輸入店名／電話，或把地圖移到想去的地方按「搜尋這個區域」，店家清單會顯示在這裡。</p>'; $('more').hidden = true; $('status').textContent = '請選擇縣市，或直接輸入店名／電話搜尋全國。'; $('areabar').hidden = true; updateMap(''); return; }
   if (!city && !all) { loadAll(); return; }
   matched = (city ? rows : all).filter(r =>
-    (!d || r.d === d) && (!g || r.g === g) && (!t || r.t === t) &&
+    (!d || r.d === d) && (!gs.size || gs.has(r.g)) && (!t || r.t === t) &&
     (!kw || r._n.includes(kw)) && (!tel || r._p.includes(tel)) &&
     (!bounds || (r.c && r.c[1] >= bounds.getWest() && r.c[1] <= bounds.getEast() && r.c[0] >= bounds.getSouth() && r.c[0] <= bounds.getNorth())));
   shown = 0;
   $('results').innerHTML = '';
   more();
   const nc = matched.filter(r => r.c).length;
-  $('status').textContent = `${city || (bounds ? '地圖範圍內' : '全國')} 共 ${matched.length.toLocaleString()} 家符合（不含計程車；同一家店的多筆登記已合併）；地圖上有 ${nc.toLocaleString()} 家`;
+  $('status').textContent = `${bounds ? (city ? city + '・' : '') + '地圖範圍內' : city || '全國'} 共 ${matched.length.toLocaleString()} 家符合（不含計程車；同一家店的多筆登記已合併）；地圖上有 ${nc.toLocaleString()} 家`;
   $('areabar').hidden = !bounds;
   $('searcharea').hidden = true;
   updateMap(city);
@@ -221,9 +224,15 @@ $('results').addEventListener('click', e => {
 let timer;
 const later = () => { clearTimeout(timer); timer = setTimeout(render, 200); };
 $('city').addEventListener('change', onCity);
-$('district').addEventListener('change', () => { resetBounds(); render(); });
-$('gmcc').addEventListener('change', onGmcc);
-$('tcc').addEventListener('change', () => { resetBounds(); render(); });
+$('district').addEventListener('change', render);
+$('gmccopts').addEventListener('change', onGmcc);
+$('gmccopts').addEventListener('click', e => {
+  if (!e.target.closest('.clr')) return;
+  $('gmccopts').querySelectorAll('input').forEach(x => x.checked = false);
+  onGmcc();
+});
+document.addEventListener('click', e => { if (!e.target.closest('#gmcc')) $('gmcc').open = false; });
+$('tcc').addEventListener('change', render);
 $('kw').addEventListener('input', later);
 $('tel').addEventListener('input', later);
 $('more').addEventListener('click', more);

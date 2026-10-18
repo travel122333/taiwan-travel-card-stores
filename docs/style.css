@@ -32,7 +32,20 @@ footer { max-width: 860px; margin: 0 auto; padding: 8px 12px 28px; font-size: .8
 #mapwrap .note { margin: 4px 0 0; font-size: .75rem; }
 #searcharea { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 2;
   box-shadow: 0 1px 4px rgba(0,0,0,.35); border-radius: 18px; padding: 8px 18px; }
-#areabar { margin: 0 0 8px; padding: 6px 10px; background: #fff7d6; border: 1px solid #e6d48a; border-radius: 6px; font-size: .88rem; }
+#areabar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+  margin: 6px 0 0; padding: 6px 10px; background: #fff3c4; border: 2px solid #e0b100; border-radius: 6px; font-size: .88rem; font-weight: 600; }
+#areabar[hidden] { display: none; }
+#cleararea { background: #c2410c; padding: 6px 14px; font-weight: 600; }
+.lbl { display: flex; flex-direction: column; font-size: .85rem; color: #555; gap: 3px; position: relative; min-width: 0; }
+.msel summary { list-style: none; font-weight: normal; color: #222; padding: 8px 28px 8px 8px; border: 1px solid #bbb; border-radius: 6px; background: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; }
+.msel summary::-webkit-details-marker { display: none; }
+.msel summary::after { content: '▾'; position: absolute; right: 9px; color: #444; }
+#gmccopts { position: absolute; z-index: 10; left: 0; top: 100%; min-width: 100%; width: max-content; max-height: 60vh; overflow-y: auto;
+  background: #fff; border: 1px solid #bbb; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.18); padding: 4px 0; }
+#gmccopts label { flex-direction: row; align-items: center; gap: 6px; padding: 4px 12px; color: #222; font-size: .9rem; cursor: pointer; }
+#gmccopts label:hover { background: #eef3fb; }
+#gmccopts .clr { display: block; margin: 4px 12px; padding: 4px 10px; font-size: .82rem; }
 .card.hl { border-color: #1e5aa8; box-shadow: 0 0 0 2px #9bbbe6; }
 .card.hasmap { cursor: pointer; }
 .nomap { font-size: .78rem; color: #999; }
@@ -57,6 +70,8 @@ footer { max-width: 860px; margin: 0 auto; padding: 8px 12px 28px; font-size: .8
   .filters { gap: 6px; margin-bottom: 6px; }
   label { font-size: .78rem; gap: 1px; }
   select, input { padding: 4px 6px; }
+  .msel summary { padding: 4px 28px 4px 6px; }
+  .lbl { font-size: .78rem; gap: 1px; }
   .status { font-size: .82rem; }
 }
 #results .hint { color: #777; padding: 24px 8px; text-align: center; }
