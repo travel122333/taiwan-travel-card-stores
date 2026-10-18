@@ -92,7 +92,7 @@ function render() {
   const city = $('city').value;
   const d = $('district').value, g = $('gmcc').value, t = $('tcc').value;
   const kw = norm($('kw').value), tel = digits($('tel').value);
-  if (!city && !kw && !tel && !bounds) { matched = []; $('results').innerHTML = ''; $('more').hidden = true; $('status').textContent = '請選擇縣市，或直接輸入店名／電話搜尋全國。'; $('areabar').hidden = true; updateMap(''); return; }
+  if (!city && !kw && !tel && !bounds) { matched = []; $('results').innerHTML = '<p class="hint">在左側選擇縣市或類別、輸入店名／電話，或把地圖移到想去的地方按「搜尋這個區域」，店家清單會顯示在這裡。</p>'; $('more').hidden = true; $('status').textContent = '請選擇縣市，或直接輸入店名／電話搜尋全國。'; $('areabar').hidden = true; updateMap(''); return; }
   if (!city && !all) { loadAll(); return; }
   matched = (city ? rows : all).filter(r =>
     (!d || r.d === d) && (!g || r.g === g) && (!t || r.t === t) &&
