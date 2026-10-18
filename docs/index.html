@@ -33,25 +33,26 @@
       <a href="https://www.dgpa.gov.tw/" target="_blank" rel="noopener">行政院人事行政總處</a></p>
   </details>
 
-  <section class="box">
-    <div class="filters">
-      <label>縣市<select id="city"><option value="">請選擇縣市</option></select></label>
-      <label>鄉鎮市區<select id="district" disabled><option value="">全部</option></select></label>
-      <label>大類<select id="gmcc"><option value="">全部</option></select></label>
-      <label>細類<select id="tcc" disabled><option value="">全部</option></select></label>
-    </div>
-    <div class="filters">
-      <label>店名／關鍵字<input id="kw" type="search" placeholder="例：全家、7-11、麗緻"></label>
-      <label>電話（只比對數字）<input id="tel" type="search" inputmode="tel" placeholder="例：02-2516 或 25160966"></label>
-    </div>
-    <p id="status" class="status">請選擇縣市，或直接輸入店名／電話搜尋全國。</p>
-  </section>
-
   <div id="split">
+    <div id="leftcol">
+    <section class="box">
+      <div class="filters">
+        <label>縣市<select id="city"><option value="">請選擇縣市</option></select></label>
+        <label>鄉鎮市區<select id="district" disabled><option value="">全部</option></select></label>
+        <label>大類<select id="gmcc"><option value="">全部</option></select></label>
+        <label>細類<select id="tcc" disabled><option value="">全部</option></select></label>
+      </div>
+      <div class="filters">
+        <label>店名／關鍵字<input id="kw" type="search" placeholder="例：全家、7-11、麗緻"></label>
+        <label>電話（只比對數字）<input id="tel" type="search" inputmode="tel" placeholder="例：02-2516 或 25160966"></label>
+      </div>
+      <p id="status" class="status">請選擇縣市，或直接輸入店名／電話搜尋全國。</p>
+    </section>
     <div id="mapwrap">
       <div id="map"></div>
       <button id="searcharea" hidden>搜尋這個區域</button>
       <p class="note" id="mapnote">底圖：<a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>；座標由 <a href="https://nominatim.org/" target="_blank" rel="noopener">Nominatim</a> 依地址推算（ODbL），可能有誤差，僅供參考。</p>
+    </div>
     </div>
     <div id="listcol">
       <p id="areabar" hidden>目前只顯示地圖範圍內的店。<a href="#" id="cleararea">清除範圍限制</a></p>

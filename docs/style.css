@@ -4,7 +4,7 @@ body { margin: 0; font-family: system-ui, "Noto Sans TC", "PingFang TC", "Micros
 header { background: #1e5aa8; color: #fff; padding: 14px 16px; }
 h1 { margin: 0; font-size: 1.3rem; }
 .sub { margin: 4px 0 0; font-size: .9rem; opacity: .9; }
-main { max-width: 1280px; margin: 0 auto; padding: 12px; }
+main { max-width: 1600px; margin: 0 auto; padding: 12px; }
 .box { background: #fff; border: 1px solid #dde1e6; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; }
 summary { cursor: pointer; font-weight: 600; }
 .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
@@ -40,8 +40,10 @@ footer { max-width: 860px; margin: 0 auto; padding: 8px 12px 28px; font-size: .8
 .maplibregl-popup-content .pn { font-weight: 600; }
 .maplibregl-popup-content .approx { color: #b45309; }
 @media (min-width: 900px) {
-  #split { grid-template-columns: minmax(340px, 5fr) 7fr; align-items: start; }
-  #mapwrap { order: 2; position: sticky; top: 8px; }
-  #map { height: calc(100vh - 80px); min-height: 400px; }
-  #listcol { order: 1; }
+  /* 左欄（篩選＋地圖）固定在畫面上，右欄清單隨頁面捲動 */
+  #split { grid-template-columns: 7fr minmax(340px, 5fr); align-items: start; }
+  #leftcol { position: sticky; top: 8px; height: calc(100vh - 16px); display: flex; flex-direction: column; }
+  #leftcol .box { margin-bottom: 8px; }
+  #mapwrap { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  #map { flex: 1; height: auto; min-height: 300px; }
 }
