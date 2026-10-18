@@ -4,7 +4,7 @@ body { margin: 0; font-family: system-ui, "Noto Sans TC", "PingFang TC", "Micros
 header { background: #1e5aa8; color: #fff; padding: 14px 16px; }
 h1 { margin: 0; font-size: 1.3rem; }
 .sub { margin: 4px 0 0; font-size: .9rem; opacity: .9; }
-main { max-width: 860px; margin: 0 auto; padding: 12px; }
+main { max-width: 1280px; margin: 0 auto; padding: 12px; }
 .box { background: #fff; border: 1px solid #dde1e6; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; }
 summary { cursor: pointer; font-weight: 600; }
 .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
@@ -25,3 +25,23 @@ td:last-child, th:last-child { text-align: right; }
 #chg-body li { font-size: .88rem; }
 footer { max-width: 860px; margin: 0 auto; padding: 8px 12px 28px; font-size: .8rem; color: #666; }
 .regs{margin-top:.4em;font-size:.9em;color:#555}.regs ul{margin:.3em 0;padding-left:1.2em}
+
+#split { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 12px; }
+#map { height: 45vh; min-height: 280px; border-radius: 8px; border: 1px solid #dde1e6; }
+#mapwrap { position: relative; }
+#mapwrap .note { margin: 4px 0 0; font-size: .75rem; }
+#searcharea { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 2;
+  box-shadow: 0 1px 4px rgba(0,0,0,.35); border-radius: 18px; padding: 8px 18px; }
+#areabar { margin: 0 0 8px; padding: 6px 10px; background: #fff7d6; border: 1px solid #e6d48a; border-radius: 6px; font-size: .88rem; }
+.card.hl { border-color: #1e5aa8; box-shadow: 0 0 0 2px #9bbbe6; }
+.card.hasmap { cursor: pointer; }
+.nomap { font-size: .78rem; color: #999; }
+.maplibregl-popup-content { font-size: .88rem; line-height: 1.45; }
+.maplibregl-popup-content .pn { font-weight: 600; }
+.maplibregl-popup-content .approx { color: #b45309; }
+@media (min-width: 900px) {
+  #split { grid-template-columns: minmax(340px, 5fr) 7fr; align-items: start; }
+  #mapwrap { order: 2; position: sticky; top: 8px; }
+  #map { height: calc(100vh - 80px); min-height: 400px; }
+  #listcol { order: 1; }
+}

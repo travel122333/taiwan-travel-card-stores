@@ -8,6 +8,7 @@ ROOT = Path(__file__).parent
 CSV = ROOT / 'data' / 'stores_active.csv'
 PREV = ROOT / 'data' / 'prev' / 'stores_active.csv'
 CATS = ROOT / 'data' / 'categories.json'
+GEO = ROOT / 'data' / 'geocode.csv'  # Nominatim 地理編碼結果（addr 為 NFKC＋去空白後的地址）
 OUT = ROOT / 'docs' / 'data'
 TAXI = '計程車'
 CITIES = ['台北市', '新北市', '基隆市', '桃園市', '新竹市', '新竹縣', '苗栗縣', '台中市', '彰化縣', '南投縣',
@@ -35,6 +36,21 @@ def fleet(name):
     if n.startswith('大都會平台'):
         return '大都會平台（TAIX）'
     return re.sub(r'[\s\d\-－—﹣]+$', '', n)  # 其他：店名去掉尾端編號
+
+
+def addr_key(a):
+    return re.sub(r'\s', '', unicodedata.normalize('NFKC', a))
+
+
+def load_geo():
+    """addr → [lat, lon] 或 [lat, lon, 1]（1＝路段級，位置約略）。level 非 house/road 視為查無。"""
+    geo = {}
+    if GEO.exists():
+        for g in read(GEO):
+            if g['level'] in ('house', 'road') and g['lat'] and g['lon']:
+                c = [round(float(g['lat']), 5), round(float(g['lon']), 5)]
+                geo[g['addr']] = c + [1] if g['level'] == 'road' else c
+    return geo
 
 
 def phone_of(s):
@@ -86,6 +102,7 @@ def main():
     for old in OUT.glob('*.json'):
         old.unlink()
 
+    geo = load_geo()
     by_city, taxi = {}, {}
     for r in rows:
         if r['tcc'] == TAXI:
@@ -96,6 +113,9 @@ def main():
         p = phone_of(r['phone'])
         if p:
             rec['p'] = p
+        c = geo.get(addr_key(r['address']))
+        if c:
+            rec['c'] = c
         by_city.setdefault(city_of(r), []).append(rec)
 
     dump = lambda path, obj: path.write_text(json.dumps(obj, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
@@ -104,7 +124,7 @@ def main():
     for c, lst in by_city.items():
         dump(OUT / f'{c}.json', lst)
     # 全國索引：未選縣市時用店名／電話搜尋全國（欄位順序同 app.js loadAll）
-    dump(OUT / 'index.json', [[r['n'], r['a'], r['d'], r['g'], r['t'], r.get('p', ''), r['i'], r.get('m', [])]
+    dump(OUT / 'index.json', [[r['n'], r['a'], r['d'], r['g'], r['t'], r.get('p', ''), r['i'], r.get('m', []), r.get('c', 0)]
                               for c in CITIES + [OTHER] for r in by_city.get(c, [])])
     fleets = sorted(({'n': k, 'c': v} for k, v in taxi.items()), key=lambda x: -x['c'])
     dump(OUT / 'taxi.json', {'total': sum(taxi.values()), 'fleets': fleets})
@@ -127,6 +147,8 @@ def main():
     })
     sizes = sorted(((p.stat().st_size, p.name) for p in OUT.glob('*.json')), reverse=True)
     print(f'非計程車 {raw} 筆登記合併為 {sum(len(l) for l in by_city.values())} 家')
+    n_geo = sum(1 for l in by_city.values() for r in l if 'c' in r)
+    print(f'有座標 {n_geo} 家（geocode.csv {len(geo)} 筆有效）')
     print(f'共 {len(rows)} 筆；計程車 {sum(taxi.values())} 筆 → {len(fleets)} 車隊；新增 {len(added)}／消失 {len(removed)}')
     print(f'docs/data 合計 {sum(s for s, _ in sizes) / 1e6:.2f} MB，最大 {sizes[0][1]} {sizes[0][0] / 1e6:.2f} MB')
 

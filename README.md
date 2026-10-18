@@ -4,6 +4,7 @@
 
 - 資料來源：NCCC 國民旅遊卡特約商店查詢系統（https://travel.nccc.com.tw/）
 - 更新頻率：每週日凌晨由 GitHub Actions 自動重新抓取並部署（網頁會顯示資料更新日與本週新增／解約的店）
+- 地圖：MapLibre GL JS＋OpenFreeMap 底圖；座標來自 Nominatim 地理編碼（`data/geocode.csv`，ODbL），`build_data.py` 依地址對應，沒座標的店只在清單顯示
 - 計程車（約 5.7 萬筆）僅按車隊收合顯示，不逐筆列出
 
 ## 本機使用

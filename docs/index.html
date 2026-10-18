@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>國旅卡特約商店查詢（非官方）</title>
 <link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -46,8 +47,18 @@
     <p id="status" class="status">請選擇縣市，或直接輸入店名／電話搜尋全國。</p>
   </section>
 
-  <section id="results"></section>
-  <div class="center"><button id="more" hidden>顯示更多</button></div>
+  <div id="split">
+    <div id="mapwrap">
+      <div id="map"></div>
+      <button id="searcharea" hidden>搜尋這個區域</button>
+      <p class="note" id="mapnote">底圖：<a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>；座標由 <a href="https://nominatim.org/" target="_blank" rel="noopener">Nominatim</a> 依地址推算（ODbL），可能有誤差，僅供參考。</p>
+    </div>
+    <div id="listcol">
+      <p id="areabar" hidden>目前只顯示地圖範圍內的店。<a href="#" id="cleararea">清除範圍限制</a></p>
+      <section id="results"></section>
+      <div class="center"><button id="more" hidden>顯示更多</button></div>
+    </div>
+  </div>
 
   <details class="box" id="changes">
     <summary>本週新增／解約的店 <span id="chg-sum"></span></summary>
@@ -64,6 +75,7 @@
 <footer>
   <p>非官方網站，資料每週自 <a href="https://travel.nccc.com.tw/NASApp/NTC/servlet/com.du.mvc.EntryServlet?Action=RetailerInquiry&Type=GetFull" target="_blank" rel="noopener">NCCC 國民旅遊卡特約商店查詢系統</a>抓取。Google 地圖連結是以店名＋地址搜尋，不保證對應到同一家店。實際是否為特約商店，請以「到 NCCC 確認」連結及官方系統為準。</p>
 </footer>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -6,6 +6,7 @@ const detailUrl = id => `${NCCC}?Action=RetailerEdit&Type=GetFull&Id=${id}&Reque
 
 let meta, gName = {}, tName = {};
 let rows = [], all = null, matched = [], shown = 0;
+let bounds = null, map, mapReady = false, popup, hlEl;
 
 // 統一比對用字串：全半形、大小寫、臺→台、空白標點，並去除公司後綴
 const SUFFIX = /股份有限公司|有限公司|分公司|營業所|[-－﹣](網路|ec)(\.?app)?/g;
@@ -65,6 +66,7 @@ function esc(s) {
 }
 
 async function onCity() {
+  resetBounds();
   const city = $('city').value;
   rows = [];
   fill($('district'), [], '全部');
@@ -79,6 +81,7 @@ async function onCity() {
 }
 
 function onGmcc() {
+  resetBounds();
   const g = meta.cats.find(x => x.g === $('gmcc').value);
   fill($('tcc'), g ? g.t.map(t => [t.c, t.n]) : [], '全部');
   $('tcc').disabled = !g || !g.t.length;
@@ -89,23 +92,103 @@ function render() {
   const city = $('city').value;
   const d = $('district').value, g = $('gmcc').value, t = $('tcc').value;
   const kw = norm($('kw').value), tel = digits($('tel').value);
-  if (!city && !kw && !tel) { matched = []; $('results').innerHTML = ''; $('more').hidden = true; $('status').textContent = '請選擇縣市，或直接輸入店名／電話搜尋全國。'; return; }
+  if (!city && !kw && !tel) { matched = []; $('results').innerHTML = ''; $('more').hidden = true; $('status').textContent = '請選擇縣市，或直接輸入店名／電話搜尋全國。'; $('areabar').hidden = true; updateMap(''); return; }
   if (!city && !all) { loadAll(); return; }
   matched = (city ? rows : all).filter(r =>
     (!d || r.d === d) && (!g || r.g === g) && (!t || r.t === t) &&
-    (!kw || r._n.includes(kw)) && (!tel || r._p.includes(tel)));
+    (!kw || r._n.includes(kw)) && (!tel || r._p.includes(tel)) &&
+    (!bounds || (r.c && r.c[1] >= bounds.getWest() && r.c[1] <= bounds.getEast() && r.c[0] >= bounds.getSouth() && r.c[0] <= bounds.getNorth())));
   shown = 0;
   $('results').innerHTML = '';
   more();
-  $('status').textContent = `${city || '全國'} 共 ${matched.length.toLocaleString()} 家符合（不含計程車；同一家店的多筆登記已合併）`;
+  const nc = matched.filter(r => r.c).length;
+  $('status').textContent = `${city || '全國'} 共 ${matched.length.toLocaleString()} 家符合（不含計程車；同一家店的多筆登記已合併）；地圖上有 ${nc.toLocaleString()} 家`;
+  $('areabar').hidden = !bounds;
+  $('searcharea').hidden = true;
+  updateMap(city);
+}
+
+// ---- 地圖 ----
+const TAIWAN = [[118.0, 21.6], [122.3, 26.6]];
+function initMap() {
+  if (!window.maplibregl) { $('map').textContent = '地圖載入失敗（無法連線 CDN）'; return; }
+  map = new maplibregl.Map({ container: 'map', style: 'https://tiles.openfreemap.org/styles/liberty', bounds: TAIWAN, fitBoundsOptions: { padding: 10 } });
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+  popup = new maplibregl.Popup({ closeOnClick: false, offset: 12, maxWidth: '280px' });
+  map.on('load', () => {
+    map.addSource('stores', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, cluster: true, clusterMaxZoom: 16, clusterRadius: 45 });
+    map.addLayer({ id: 'clusters', type: 'circle', source: 'stores', filter: ['has', 'point_count'],
+      paint: { 'circle-color': ['step', ['get', 'point_count'], '#4a90d9', 50, '#1e5aa8', 500, '#0b3a78'],
+        'circle-radius': ['step', ['get', 'point_count'], 15, 50, 19, 500, 24], 'circle-stroke-width': 2, 'circle-stroke-color': '#fff' } });
+    map.addLayer({ id: 'cluster-count', type: 'symbol', source: 'stores', filter: ['has', 'point_count'],
+      layout: { 'text-field': ['get', 'point_count_abbreviated'], 'text-font': ['Noto Sans Regular'], 'text-size': 12 },
+      paint: { 'text-color': '#fff' } });
+    map.addLayer({ id: 'point', type: 'circle', source: 'stores', filter: ['!', ['has', 'point_count']],
+      paint: { 'circle-color': ['case', ['==', ['get', 'ap'], 1], '#e0a030', '#d94a4a'], 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#fff' } });
+    map.addLayer({ id: 'label', type: 'symbol', source: 'stores', minzoom: 15, filter: ['!', ['has', 'point_count']],
+      layout: { 'text-field': ['get', 'n'], 'text-font': ['Noto Sans Regular'], 'text-size': 12, 'text-offset': [0, 1.1], 'text-anchor': 'top', 'text-optional': true },
+      paint: { 'text-color': '#222', 'text-halo-color': '#fff', 'text-halo-width': 1.5 } });
+    map.on('click', 'clusters', e => {
+      const f = e.features[0];
+      map.getSource('stores').getClusterExpansionZoom(f.properties.cluster_id).then(z =>
+        map.easeTo({ center: f.geometry.coordinates, zoom: z + 0.5 }));
+    });
+    map.on('click', 'point', e => selectStore(+e.features[0].properties.k, { fromMap: true }));
+    ['clusters', 'point'].forEach(l => {
+      map.on('mouseenter', l, () => map.getCanvas().style.cursor = 'pointer');
+      map.on('mouseleave', l, () => map.getCanvas().style.cursor = '');
+    });
+    map.on('moveend', e => { if (e.originalEvent) $('searcharea').hidden = false; });
+    mapReady = true;
+    updateMap($('city').value);
+  });
+}
+
+function updateMap(city) {
+  if (!mapReady) return;
+  const feats = [];
+  matched.forEach((r, k) => {
+    if (r.c) feats.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [r.c[1], r.c[0]] }, properties: { k, n: r.n, ap: r.c[2] || 0 } });
+  });
+  map.getSource('stores').setData({ type: 'FeatureCollection', features: feats });
+  popup.remove();
+  if (bounds) return;
+  if (!city || !feats.length) { if (!city) map.fitBounds(TAIWAN, { padding: 10 }); return; }
+  const b = new maplibregl.LngLatBounds();
+  feats.forEach(f => b.extend(f.geometry.coordinates));
+  map.fitBounds(b, { padding: 40, maxZoom: 16 });
+}
+
+function popupHtml(r) {
+  return `<div class="pn">${esc(r.n)}</div>` +
+    (r.p ? `<div>${esc(r.p)}</div>` : '') + `<div>${esc(r.a)}</div>` +
+    (r.c[2] ? '<div class="approx">位置約略（僅定位到路段）</div>' : '') +
+    `<a href="${detailUrl(r.i)}" target="_blank" rel="noopener">到 NCCC 確認</a>　` +
+    `<a href="${mapUrl(r)}" target="_blank" rel="noopener">Google 地圖</a>`;
+}
+
+// 選取第 k 家：開 popup、清單高亮並捲動；從清單點選時地圖 flyTo，從地圖點選時清單捲動
+function selectStore(k, { fromMap = false } = {}) {
+  const r = matched[k];
+  if (!r || !r.c) return;
+  while (shown <= k && shown < matched.length) more();
+  if (hlEl) hlEl.classList.remove('hl');
+  hlEl = $('c' + k);
+  if (hlEl) { hlEl.classList.add('hl'); if (fromMap) hlEl.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+  const ll = [r.c[1], r.c[0]];
+  popup.setLngLat(ll).setHTML(popupHtml(r)).addTo(map);
+  if (!fromMap) {
+    if (window.matchMedia('(max-width: 899px)').matches) $('map').scrollIntoView({ block: 'start', behavior: 'smooth' });
+    map.flyTo({ center: ll, zoom: Math.max(map.getZoom(), 17) });
+  }
 }
 
 function more() {
   const next = matched.slice(shown, shown + PAGE);
-  $('results').insertAdjacentHTML('beforeend', next.map(r =>
-    `<div class="card"><div class="name">${esc(r.n)}</div>` +
+  $('results').insertAdjacentHTML('beforeend', next.map((r, j) =>
+    `<div class="card${r.c ? ' hasmap' : ''}" id="c${shown + j}"><div class="name">${esc(r.n)}</div>` +
     `<div class="meta">${esc(r.a)}</div>` +
-    `<div class="meta">${esc(tName[r.t] || '')}｜${esc(gName[r.g] || '')}${r.p ? '｜' + esc(r.p) : ''}</div>` +
+    `<div class="meta">${esc(tName[r.t] || '')}｜${esc(gName[r.g] || '')}${r.p ? '｜' + esc(r.p) : ''}${r.c ? '' : ' <span class="nomap">｜無地圖位置</span>'}</div>` +
     `<a href="${detailUrl(r.i)}" target="_blank" rel="noopener">到 NCCC 確認</a>　` +
     `<a href="${mapUrl(r)}" target="_blank" rel="noopener">Google 地圖</a>` +
     (r.m && r.m.length ? `<details class="regs"><summary>同一家店另有 ${r.m.length} 筆登記（不同刷卡機或部門，都是特約）</summary><ul>` +
@@ -119,18 +202,28 @@ let loading;
 function loadAll() {
   $('status').textContent = '載入全國索引中…';
   loading = loading || getJSON('index').then(x => {
-    all = x.map(([n, a, d, g, t, p, i, m]) => prep({ n, a, d, g, t, p, i, m }));
+    all = x.map(([n, a, d, g, t, p, i, m, c]) => prep({ n, a, d, g, t, p, i, m, c: c || undefined }));
     render();
   });
 }
 
+function resetBounds() { bounds = null; }
+$('searcharea').addEventListener('click', () => { bounds = map.getBounds(); render(); });
+$('cleararea').addEventListener('click', e => { e.preventDefault(); resetBounds(); render(); });
+$('results').addEventListener('click', e => {
+  const card = e.target.closest('.card.hasmap');
+  if (!card || e.target.closest('a, summary, details')) return;
+  selectStore(+card.id.slice(1));
+});
+
 let timer;
 const later = () => { clearTimeout(timer); timer = setTimeout(render, 200); };
 $('city').addEventListener('change', onCity);
-$('district').addEventListener('change', render);
+$('district').addEventListener('change', () => { resetBounds(); render(); });
 $('gmcc').addEventListener('change', onGmcc);
-$('tcc').addEventListener('change', render);
+$('tcc').addEventListener('change', () => { resetBounds(); render(); });
 $('kw').addEventListener('input', later);
 $('tel').addEventListener('input', later);
 $('more').addEventListener('click', more);
+initMap();
 init().catch(e => { $('updated').textContent = '載入失敗'; console.error(e); });
